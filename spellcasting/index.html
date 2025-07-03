@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spellcasting Game</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        
+        #gameContainer {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            width: 100vw;
+            height: 100vh;
+            border: none;
+            border-radius: 0;
+            box-shadow: none;
+        }
+        
+        #gameCanvas {
+            width: 100vw;
+            height: 100vh;
+            display: block;
+            background: radial-gradient(circle, #2c3e50, #1a1a2e);
+        }
+        
+        #ui {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-size: 16px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+        
+        #spellDisplay {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #4a90e2;
+            font-size: 18px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.5);
+            padding: 10px 20px;
+            border-radius: 20px;
+            border: 1px solid #4a90e2;
+        }
+        
+        #instructions {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            text-align: center;
+            background: rgba(0,0,0,0.9);
+            padding: 30px;
+            border-radius: 15px;
+            border: 2px solid #4a90e2;
+            display: none;
+            max-width: 500px;
+            box-shadow: 0 0 30px rgba(74, 144, 226, 0.5);
+        }
+        
+        .key {
+            display: inline-block;
+            background: #4a90e2;
+            color: white;
+            padding: 5px 10px;
+            margin: 2px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        
+        .upgrade-option {
+            margin: 15px 0;
+            padding: 15px;
+            border: 2px solid #4a90e2;
+            border-radius: 10px;
+            background: rgba(74, 144, 226, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .upgrade-option:hover {
+            background: rgba(74, 144, 226, 0.2);
+            transform: scale(1.02);
+        }
+        
+        #cooldownBars {
+            margin-top: 10px;
+        }
+        
+        .cooldown-bar {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        
+        .cooldown-bar span {
+            width: 80px;
+            margin-right: 10px;
+        }
+        
+        .bar-bg {
+            width: 100px;
+            height: 8px;
+            background: rgba(0,0,0,0.5);
+            border: 1px solid #4a90e2;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .bar-fill {
+            height: 100%;
+            background: #4a90e2;
+            width: 0%;
+            transition: width 0.1s ease;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <div id="ui">
+            <div>Health: <span id="health">100/100</span></div>
+            <div>Score: <span id="score">0</span></div>
+            <div>Level: <span id="level">1</span></div>
+            <button id="testSound" style="margin-top: 10px; padding: 5px 10px; background: #4a90e2; color: white; border: none; border-radius: 5px; cursor: pointer;">Test Sound</button>
+            <div id="cooldownBars">
+                <div class="cooldown-bar">
+                    <span>Fireball:</span>
+                    <div class="bar-bg"><div class="bar-fill" id="fireCooldown"></div></div>
+                </div>
+                <div class="cooldown-bar">
+                    <span>Ice Spike:</span>
+                    <div class="bar-bg"><div class="bar-fill" id="iceCooldown"></div></div>
+                </div>
+                <div class="cooldown-bar">
+                    <span>Lightning:</span>
+                    <div class="bar-bg"><div class="bar-fill" id="lightCooldown"></div></div>
+                </div>
+                <div class="cooldown-bar">
+                    <span>Heal:</span>
+                    <div class="bar-bg"><div class="bar-fill" id="healCooldown"></div></div>
+                </div>
+                <div class="cooldown-bar">
+                    <span>Chain Lightning:</span>
+                    <div class="bar-bg"><div class="bar-fill" id="chainCooldown"></div></div>
+                </div>
+                <div class="cooldown-bar">
+                    <span>Shield:</span>
+                    <div class="bar-bg"><div class="bar-fill" id="shieldCooldown"></div></div>
+                </div>
+            </div>
+        </div>
+        <div id="spellDisplay">Press keys to cast spells!</div>
+        <div id="instructions">
+            <h2>Spellcasting Game</h2>
+            <p>Use these key combinations to cast spells:</p>
+            <div id="spell-instructions">
+                <p><span class="key">F</span> + <span class="key">I</span> + <span class="key">R</span> + <span class="key">E</span> = Fireball</p>
+                <p><span class="key">I</span> + <span class="key">C</span> + <span class="key">E</span> = Ice Spike</p>
+                <p><span class="key">L</span> + <span class="key">I</span> + <span class="key">G</span> + <span class="key">H</span> + <span class="key">T</span> = Lightning</p>
+                <p><span class="key">H</span> + <span class="key">E</span> + <span class="key">A</span> + <span class="key">L</span> = Heal</p>
+                <p><span class="key">S</span> + <span class="key">H</span> + <span class="key">I</span> + <span class="key">E</span> + <span class="key">L</span> + <span class="key">D</span> = Shield</p>
+            </div>
+            <p>Press SPACE to start!</p>
+        </div>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html> 
